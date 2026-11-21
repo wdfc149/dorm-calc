@@ -185,6 +185,11 @@ S.settings={...DEF.settings,...S.settings};
 if(!Array.isArray(S.settings.highDays)) S.settings.highDays=[S.settings.highDay||1];
 delete S.settings.highDay;
 if(typeof S.settings.pOther!=='number') S.settings.pOther=20;
+if(typeof S.missBase!=='number') S.missBase=0;
+if(typeof S.merit!=='number') S.merit=0;
+if(!Array.isArray(S.apps)) S.apps=[];
+if(!Array.isArray(S.rollcalls)) S.rollcalls=[];
+if(!Array.isArray(S.holidays)) S.holidays=[];
 S.noRoll=S.noRoll||[]; S.used=S.used||{};
 const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
 
@@ -442,7 +447,7 @@ function viewSettings(){
   <div class="sect-title">불참 / 상벌점</div>
   <section class="card">
     <div class="row"><span>학기 누적 불참</span>
-      <div class="stepper"><button onclick="S.missBase=Math.max(0,${mc-1});save();render()">−</button><b>${mc}회</b><button onclick="S.missBase=${mc+1};save();render()">+</button></div></div>
+      <div class="stepper"><button onclick="S.missBase=Math.max(0,S.missBase-1);save();render()">−</button><b>${mc}회</b><button onclick="S.missBase=S.missBase+1;save();render()">+</button></div></div>
     <div class="muted small" style="margin-top:8px">5회면 입사 불가, 6회면 퇴사 · 기록된 불참 포함</div>
     <div class="row" style="margin-top:14px"><span>상점</span><b>${S.merit}점</b></div>
     <div class="actions"><button class="btn" onclick="S.merit++;save();render()">상점 +1</button>
@@ -472,13 +477,14 @@ function viewSettings(){
 
 /* ---------- sheet ---------- */
 function openCell(k){
-  const d=new Date(k+'T00:00:00'),app=isApplied(d),roll=hasRoll(d);
+  const d=new Date(k+'T00:00:00'),app=isApplied(d),roll=hasRoll(d),future=+d>+today;
   document.getElementById('sheetBox').innerHTML=`
     <h3>${d.getMonth()+1}월 ${d.getDate()}일 ${WD[d.getDay()]}요일</h3>
     <div class="muted small" style="margin-bottom:10px">점호 확률 ${pct(d)||'0%'}${eligible(d)?'':' · 점호 없는 날'}</div>
     <button class="btn ${app?'primary':''}" ${(!eligible(d)&&!app)?'disabled':''} onclick="setApp(new Date('${k}T00:00:00'),${!app});closeSheet()">${app?'신청 취소':'외박신청 추가'}</button>
     ${!eligible(d)?`<div class="note">이 날은 점호가 없어서 신청 대상이 아니에요.</div>`:''}
-    <button class="btn" onclick="setRoll(new Date('${k}T00:00:00'),${!roll});closeSheet()">${roll?'점호 기록 취소':'점호 있었음(알면)'}</button>
+    <button class="btn" ${future&&!roll?'disabled':''} onclick="setRoll(new Date('${k}T00:00:00'),${!roll});closeSheet()">${roll?'점호 기록 취소':'점호 있었음(알면)'}</button>
+    ${future?`<div class="note">오늘 이후 날짜에는 점호 결과를 기록할 수 없어요.</div>`:''}
     <button class="btn" onclick="closeSheet()">닫기</button>`;
   document.getElementById('sheet').classList.add('on');
 }
