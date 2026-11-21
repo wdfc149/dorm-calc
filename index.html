@@ -18,6 +18,7 @@
 <title>외박 계산기</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  button,.cell,.switch,.tab{touch-action:manipulation}
   :root{
     --bg:#080b14; --card:#121728; --card2:#1a2135; --line:#242c44;
     --text:#eef1f8; --muted:#8a93a9; --accent:#6d8cff;
@@ -25,8 +26,9 @@
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",system-ui,sans-serif;}
-  body{min-height:100dvh;background:radial-gradient(900px 500px at 50% -10%,#1a2450 0%,transparent 60%),var(--bg);}
-  .app{max-width:430px;margin:0 auto;min-height:100dvh;padding:18px 18px calc(96px + env(safe-area-inset-bottom));}
+  body{min-height:100vh;min-height:100dvh;background:radial-gradient(900px 500px at 50% -10%,#1a2450 0%,transparent 60%),var(--bg);}
+  .app{max-width:430px;margin:0 auto;min-height:100vh;min-height:100dvh;
+    padding:18px 18px 96px;padding-bottom:calc(96px + env(safe-area-inset-bottom));}
   header{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 18px}
   .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:-.3px}
   .brand .logo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
@@ -80,8 +82,8 @@
     background:#ff6b6b14;border:1px solid #ff6b6b40;color:#ffb3b3;display:flex;gap:8px}
   .banner.warn{background:#ffb45412;border-color:#ffb4543d;color:#ffd79a}
 
-  .tabs{position:fixed;left:0;right:0;bottom:0;padding:8px 18px calc(8px + env(safe-area-inset-bottom));
-    background:#0a0e19ee;backdrop-filter:blur(14px);border-top:1px solid #1b2236;z-index:20}
+  .tabs{position:fixed;left:0;right:0;bottom:0;padding:8px 18px 12px;padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    background:#0a0e19;border-top:1px solid #1b2236;box-shadow:0 -12px 30px -20px #000;z-index:20}
   .tabs-in{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .tab{background:none;border:0;color:#6e7890;font-family:inherit;font-size:11px;font-weight:700;
     padding:8px 4px;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
@@ -105,7 +107,7 @@
   .weekhead,.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
   .weekhead{margin:14px 0 6px}
   .weekhead span{text-align:center;font-size:10.5px;color:#6f7992;font-weight:700}
-  .cell{aspect-ratio:1/1.18;border-radius:12px;background:#101526;border:1px solid #1c2337;
+  .cell{aspect-ratio:1/1.18;min-height:54px;border-radius:12px;background:#101526;border:1px solid #1c2337;
     padding:5px 2px 4px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
     position:relative;cursor:pointer;overflow:hidden}
   .cell.off{background:transparent;border-color:transparent;cursor:default}
@@ -178,7 +180,7 @@ function seed(){
   return s;
 }
 let S;
-try{S=JSON.parse(localStorage.getItem(KEY))||(DEMO?seed():structuredClone(DEF));}catch(e){S=DEMO?seed():structuredClone(DEF);}
+try{S=JSON.parse(localStorage.getItem(KEY))||(DEMO?seed():JSON.parse(JSON.stringify(DEF)));}catch(e){S=DEMO?seed():JSON.parse(JSON.stringify(DEF));}
 S.settings={...DEF.settings,...S.settings};
 if(!Array.isArray(S.settings.highDays)) S.settings.highDays=[S.settings.highDay||1];
 delete S.settings.highDay;
