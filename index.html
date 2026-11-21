@@ -170,7 +170,7 @@ const realToday=ymd(sod(now))===ymd(today);
 
 /* ---------- state ---------- */
 const KEY='dorm-calc-v2';
-const DEF={settings:{highDays:[1],pHigh:70,pOther:40,weekCap:2,quota:10,penalty:2},
+const DEF={settings:{highDays:[1],pHigh:70,pOther:20,weekCap:2,quota:10,penalty:2},
   apps:[],rollcalls:[],noRoll:[],holidays:[],used:{},missBase:0,merit:0};
 function seed(){
   const s={...DEF,apps:['2026-11-10','2026-11-17'],rollcalls:['2026-11-05','2026-11-10','2026-11-17'],
@@ -182,7 +182,7 @@ try{S=JSON.parse(localStorage.getItem(KEY))||(DEMO?seed():structuredClone(DEF));
 S.settings={...DEF.settings,...S.settings};
 if(!Array.isArray(S.settings.highDays)) S.settings.highDays=[S.settings.highDay||1];
 delete S.settings.highDay;
-if(typeof S.settings.pOther!=='number') S.settings.pOther=Math.max(0,S.settings.pHigh-30);
+if(typeof S.settings.pOther!=='number') S.settings.pOther=20;
 S.noRoll=S.noRoll||[]; S.used=S.used||{};
 const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
 
@@ -192,7 +192,19 @@ const inMonth=(d,ref)=>d.getMonth()===ref.getMonth()&&d.getFullYear()===ref.getF
 const isHoliday=d=>S.holidays.includes(ymd(d));
 const isEve=d=>S.holidays.includes(ymd(addD(d,1)));
 const eligible=d=>{const w=d.getDay();return w>=1&&w<=4&&!isHoliday(d)&&!isEve(d);};
-const baseP=d=>{if(!eligible(d))return 0;return S.settings.highDays.includes(d.getDay())?S.settings.pHigh/100:Math.max(0,S.settings.pOther)/100;};
+function otherPct(){
+  const nH=S.settings.highDays.length, nO=Math.max(0,4-nH);
+  if(nO===0) return 0;
+  const budget=Math.max(0,S.settings.weekCap - nH*S.settings.pHigh/100);
+  const p=Math.min((S.settings.pHigh-10)/100, budget/nO);
+  return Math.max(0,Math.round(p*100));
+}
+const weekRollBefore=d=>S.rollcalls.filter(r=>{const rd=new Date(r+'T00:00:00');return +mondayOf(rd)===+mondayOf(d)&&rd<d;}).length;
+const baseP=d=>{
+  if(!eligible(d))return 0;
+  const boosted=S.settings.highDays.includes(d.getDay())&&weekRollBefore(d)===0;
+  return (boosted?S.settings.pHigh:otherPct())/100;
+};
 const hasRoll=d=>S.rollcalls.includes(ymd(d));
 const hasNoRoll=d=>S.noRoll.includes(ymd(d));
 
@@ -262,9 +274,10 @@ function setRoll(d,on){
 }
 function setSetting(k,v){S.settings[k]=v;save();render();}
 function toggleHighDay(d){
-  const a=S.settings.highDays;
-  if(a.includes(d)){ if(a.length>1) S.settings.highDays=a.filter(x=>x!==d); }
-  else S.settings.highDays=[...a,d].sort((x,y)=>x-y);
+  let a=[...S.settings.highDays];
+  if(a.includes(d)){ if(a.length>1) a=a.filter(x=>x!==d); }
+  else { a.push(d); if(a.length>2) a.shift(); }
+  S.settings.highDays=a.sort((x,y)=>x-y);
   save();render();
 }
 
@@ -408,9 +421,9 @@ function viewSettings(){
     <div class="seg" style="margin-top:10px">${[1,2,3,4].map(d=>`<button class="${s.highDays.includes(d)?'on':''}" onclick="toggleHighDay(${d})">${WD[d]}</button>`).join('')}</div>
     <div class="row" style="margin-top:16px"><span>선택 요일 확률</span>
       <div class="stepper"><button onclick="setSetting('pHigh',Math.max(20,${s.pHigh-5}))">−</button><b>${s.pHigh}%</b><button onclick="setSetting('pHigh',Math.min(95,${s.pHigh+5}))">+</button></div></div>
-    <div class="row" style="margin-top:14px"><span>나머지 요일 확률</span>
-      <div class="stepper"><button onclick="setSetting('pOther',Math.max(5,${s.pOther-5}))">−</button><b>${s.pOther}%</b><button onclick="setSetting('pOther',Math.min(80,${s.pOther+5}))">+</button></div></div>
-    <div class="muted small" style="margin-top:8px">주간 캡이 차면 남은 요일은 자동으로 0%가 돼요</div>
+    <div class="row" style="margin-top:14px"><span>나머지 요일 (자동)</span>
+      <b class="muted">${otherPct()}%</b></div>
+    <div class="muted small" style="margin-top:8px">주 ${s.weekCap}회 · 선택 ${s.highDays.length}일 기준으로 자동 계산. 점호가 한 번 나오면 고확률 boost는 꺼져요</div>
   </section>
 
   <div class="sect-title">한도</div>
