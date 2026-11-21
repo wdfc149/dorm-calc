@@ -249,6 +249,7 @@ function recommend(){
 /* ---------- actions ---------- */
 function setApp(d,on){
   const k=ymd(d),i=S.apps.indexOf(k),cur=usedMonth(d);
+  if(on&&!eligible(d))return;   // 금·토·일, 공휴일 전날은 신청 대상 아님
   if(on&&i<0){S.apps.push(k);setUsed(d,cur+1);}
   if(!on&&i>=0){S.apps.splice(i,1);setUsed(d,Math.max(0,cur-1));}
   save();render();
@@ -329,9 +330,10 @@ function viewToday(){
     <div class="rec-head"><span class="dot"></span>${rec.title}</div>
     <p>${rec.reason}</p>
     <div class="actions">
-      <button class="btn ${applied?'primary green':''}" ${deadlinePassed()&&!applied?'disabled':''} onclick="setApp(today,true)">${applied?'✓ 신청함':'신청함'}</button>
+      <button class="btn ${applied?'primary green':''}" ${(!eligible(today)&&!applied)||(deadlinePassed()&&!applied)?'disabled':''} onclick="setApp(today,true)">${applied?'✓ 신청함':'신청함'}</button>
       <button class="btn" onclick="setApp(today,false)">안 함</button>
     </div>
+    ${!eligible(today)?`<div class="note">금·토·일과 공휴일 전날은 점호가 없어서 신청할 필요가 없어요.</div>`:''}
   </section>
 
   ${(()=>{
@@ -459,7 +461,8 @@ function openCell(k){
   document.getElementById('sheetBox').innerHTML=`
     <h3>${d.getMonth()+1}월 ${d.getDate()}일 ${WD[d.getDay()]}요일</h3>
     <div class="muted small" style="margin-bottom:10px">점호 확률 ${pct(d)||'0%'}${eligible(d)?'':' · 점호 없는 날'}</div>
-    <button class="btn ${app?'primary':''}" onclick="setApp(new Date('${k}T00:00:00'),${!app});closeSheet()">${app?'신청 취소':'외박신청 추가'}</button>
+    <button class="btn ${app?'primary':''}" ${(!eligible(d)&&!app)?'disabled':''} onclick="setApp(new Date('${k}T00:00:00'),${!app});closeSheet()">${app?'신청 취소':'외박신청 추가'}</button>
+    ${!eligible(d)?`<div class="note">이 날은 점호가 없어서 신청 대상이 아니에요.</div>`:''}
     <button class="btn" onclick="setRoll(new Date('${k}T00:00:00'),${!roll});closeSheet()">${roll?'점호 기록 취소':'점호 있었음(알면)'}</button>
     <button class="btn" onclick="closeSheet()">닫기</button>`;
   document.getElementById('sheet').classList.add('on');
