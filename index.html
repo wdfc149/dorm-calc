@@ -91,7 +91,7 @@
   .sect-title{font-size:12px;font-weight:800;color:#7c86a0;letter-spacing:.4px;margin:20px 2px 8px}
   .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 10px;text-align:center}
-  .stat .k{font-size:10.5px;color:var(--muted);font-weight:700}
+  .stat .k{font-size:10.5px;color:var(--muted);font-weight:700;line-height:1.25}
   .stat .v{font-size:18px;font-weight:800;margin-top:5px;letter-spacing:-.5px}
   .stat .v.green{color:var(--green)} .stat .v.red{color:var(--red)}
   .pos{color:var(--green)} .neg{color:var(--red)}
@@ -320,7 +320,7 @@ function viewToday(){
   <section class="card">
     <div class="row"><span>이번 달 외박신청</span><b>${used} / ${S.settings.quota}</b></div>
     <div class="bar"><i style="width:${Math.min(100,used/S.settings.quota*100)}%"></i></div>
-    <div class="row small"><span class="muted">${left}개 남음</span><span class="muted">남은 월~목 ${need}일</span></div>
+    <div class="row small"><span class="muted">잔여 외신 ${left}개</span><span class="muted">남은 월~목 ${need}일</span></div>
     <div class="note">${surplus>=0
       ?`오늘부터 월~목을 전부 신청하면 <b>${surplus}개 남아요</b>`
       :`오늘부터 월~목을 전부 쓰면 <b>${-surplus}개 부족해요</b>`}</div>
@@ -374,14 +374,14 @@ function viewCal(){
     <div class="month-pill">${today.getFullYear()}</div></header>
 
   <div class="summary">
-    <div class="stat"><div class="k">필요</div><div class="v">${need}일</div></div>
-    <div class="stat"><div class="k">잔여 신청</div><div class="v">${left}개</div></div>
-    <div class="stat"><div class="k">${surplus>=0?'남음':'부족'}</div><div class="v ${surplus>=0?'green':'red'}">${surplus>=0?'+':''}${surplus}</div></div>
+    <div class="stat"><div class="k">외신 다 쓰는 경우</div><div class="v">${need}일</div></div>
+    <div class="stat"><div class="k">잔여 외신</div><div class="v">${left}개</div></div>
+    <div class="stat"><div class="k">${surplus>=0?'쓰고 남음':'쓰고 부족'}</div><div class="v ${surplus>=0?'green':'red'}">${surplus>=0?'+':''}${surplus}</div></div>
   </div>
 
   <section class="card"><div class="switchrow">
     <div><div style="font-weight:700;font-size:13.5px">오늘부터 월~목 전부 신청</div>
-    <div class="muted small" style="margin-top:3px">${need}일 필요 · ${left}개 보유</div></div>
+    <div class="muted small" style="margin-top:3px">${need}일치 필요 · 잔여 외신 ${left}개</div></div>
     <button class="switch ${projection?'on':''}" onclick="projection=!projection;render()"></button>
   </div></section>
 
